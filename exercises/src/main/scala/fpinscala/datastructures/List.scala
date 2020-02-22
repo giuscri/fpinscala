@@ -117,7 +117,49 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldLeft(ll, z) { (x,y) => f(y,x) }
   }
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  def addOne(l: List[Int]): List[Int] = l match {
+    case Nil => Nil
+    case Cons(x, xs) => Cons(x + 1, addOne(xs))
+  }
+
+  def addOne2(l: List[Int]): List[Int] =
+    foldRight(l, Nil: List[Int]) { (x, xs) => Cons(x + 1, xs) }
+
+  def toString(l: List[Double]): List[String] =
+    foldRight(l, Nil: List[String]) { (x, xs) => Cons(x.toString(), xs) }
+
+  def map[A,B](l: List[A])(f: A => B): List[B] =
+    foldRight(l, Nil: List[B]) { (x, xs) => Cons(f(x), xs) }
+
+  def flatMap[A, B](l: List[A])(f: A => List[B]): List[B] = {
+    val m = map(l)(f)
+    foldRight(m, Nil: List[B]) { (xs, ys) => append(xs, ys) }
+  }
+
+  def filter2[A](as: List[A])(f: A => Boolean): List[A] =
+    flatMap(as) { x => f(x) match {
+      case true => List(x)
+      case false => Nil
+    }}
+
+  def sumLists(l1: List[Int], l2: List[Int]): List[Int] =
+    zipWith(l1, l2) { (x, y) => x + y }
+
+  def zipWith[A, B](l1: List[A], l2: List[A])(f: (A, A) => B): List[B] =
+    l1 match {
+      case Nil => Nil
+      case Cons(x, xs) =>
+        l2 match {
+          case Nil => Nil
+          case Cons(y, ys) => Cons(f(x, y), zipWith(xs, ys)(f))
+        }
+    }
+
+  def filter[A](as: List[A])(f: A => Boolean): List[A] =
+    foldRight(as, Nil: List[A]) { (x, xs) => f(x) match {
+      case true => Cons(x, filter(xs)(f))
+      case false => filter(xs)(f)
+    }}
 
   def listOfListsIntoSingleList[A](ll: List[List[A]]): List[A] = {
     foldLeft(ll, Nil: List[A]) { (xs, ys) => append(xs, ys) }
@@ -137,6 +179,13 @@ object List { // `List` companion object. Contains functions for creating and wo
     println(foldRight2(List(1, 2, 3), Nil:List[Int])(Cons(_, _)))
     println(foldLeft2(List(1, 2, 3), 0)((x,y) => x + y))
     println(append2(List(1,2,3), List(4,5,6)))
-    println(listOfListsIntoSingleList(List(List(1,2,3), List(4,5,6), List(7,8,))))
+    println(listOfListsIntoSingleList(List(List(1,2,3), List(4,5,6), List(7,8,9))))
+    println(addOne(List(1, 2, 3)))
+    println(addOne2(List(1, 2, 3)))
+    println(toString(List(1, 2, 3)))
+    println(map(List(1, 2, 3)) { x => x + 1 })
+    println(flatMap(List(1, 2, 3)) { x => List(x + 1) })
+    println(filter2(List(1, 2, 3)) { x => x % 2 == 0 })
+    println(sumLists(List(1, 2, 3), List(4, 5, 6)))
   }
 }
