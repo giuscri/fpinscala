@@ -165,6 +165,15 @@ object List { // `List` companion object. Contains functions for creating and wo
     foldLeft(ll, Nil: List[A]) { (xs, ys) => append(xs, ys) }
   }
 
+  @annotation.tailrec
+  def hasSubsequence[A](sup: List[A], sub: List[A]): Boolean = {
+    (sup, sub) match {
+      case (_, Nil) => true
+      case (Cons(x, xs), Cons(y, ys)) if x == y => hasSubsequence(xs, ys)
+      case (Cons(_, xs), sub) => hasSubsequence(xs, sub)
+    }
+  }
+
   def main(args: Array[String]): Unit = {
     println(init(List(1, 2, 3, 4)))
     println(dropWhile(List(1, 2, 3, 4, 5)) { x => x < 2 })
@@ -187,5 +196,8 @@ object List { // `List` companion object. Contains functions for creating and wo
     println(flatMap(List(1, 2, 3)) { x => List(x + 1) })
     println(filter2(List(1, 2, 3)) { x => x % 2 == 0 })
     println(sumLists(List(1, 2, 3), List(4, 5, 6)))
+    println(hasSubsequence(List(1,2,3,4), List(1,2)))
+    println(hasSubsequence(List(1,2,3,4), List(2,3)))
+    println(hasSubsequence(List(1,2,3,4), List(4)))
   }
 }
