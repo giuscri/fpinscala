@@ -151,7 +151,14 @@ object PolymorphicFunctions {
 
   // Exercise 2: Implement a polymorphic function to check whether
   // an `Array[A]` is sorted
-  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = ???
+  def isSorted[A](as: Array[A], gt: (A,A) => Boolean): Boolean = {
+    def f(xs: List[A], gt: (A,A) => Boolean): Boolean = xs match {
+      case x :: y :: xs => gt(y, x) && f(y :: xs, gt)
+      case _ => true
+    }
+
+    f(as.to[List], gt)
+  }
 
   // Polymorphic functions are often so constrained by their type
   // that they only have one implementation! Here's an example:
