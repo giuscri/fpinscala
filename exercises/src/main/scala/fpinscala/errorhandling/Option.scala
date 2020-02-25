@@ -50,13 +50,30 @@ object Option {
   def mean(xs: Seq[Double]): Option[Double] =
     if (xs.isEmpty) None
     else Some(xs.sum / xs.length)
-  def variance(xs: Seq[Double]): Option[Double] = ???
 
-  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = ???
+  def variance(xs: Seq[Double]): Option[Double] =
+    mean(xs).flatMap(m => mean(xs.map(x => math.pow(x - m, 2))))
 
-  def sequence[A](a: List[Option[A]]): Option[List[A]] = ???
+  def map2[A,B,C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
+    (a, b) match {
+      case (_, None) | (None, _) => None
+      case (Some(sa), Some(sb)) => Some(f(sa, sb))
+    }
 
-  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = ???
+  def sequence[A](a: List[Option[A]]): Option[List[A]] =
+    a.foldLeft(Some(Nil): Option[List[A]]) { (acc, x) => (acc, x) match {
+      case (None, _) | (_, None) => None
+      case (Some(sacc), Some(sx)) => Some(sacc :+ sx)
+    }}
+
+  def traverse2[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    sequence(a.map(f))
+
+  def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
+    a.foldLeft(Some(Nil): Option[List[B]]) { (acc, x) => (acc, f(x)) match {
+      case (None, _) | (_, None) => None
+      case (Some(sacc), Some(sfx)) => Some(sacc :+ sfx)
+    }}
 
   def main(args: Array[String]): Unit = {
     val x: Option[Int] = None
@@ -67,5 +84,9 @@ object Option {
     val y = Some(42)
     println(y.filter(_ < 10))
     println(y.filter(_ > 40))
+
+    println(sequence(List(Some(42), Some(3), Some(4))))
+    println(sequence(List(Some(42), Some(3), Some(4), None, Some(5))))
+    println(traverse(List(42, 5)) { x => if (x < 100) Some(x) else None})
   }
 }
