@@ -61,21 +61,16 @@ trait Stream[+A] {
   // writing your own function signatures.
 
   def map[B](f: A => B): Stream[B] =
-    foldRight(Empty: Stream[B]) { (a, b) => Cons(() => f(a), () => b) }
+    foldRight(empty: Stream[B]) { (a, b) => cons(f(a), b) }
 
   def filter(f: A => Boolean): Stream[A] =
-    foldRight(Empty: Stream[A]) { (a, b) => {
-      if (f(a))
-        Cons(() => a, () => b)
-      else
-        b
-    }}
+    foldRight(empty: Stream[A]) { (a, b) => if (f(a)) cons(a, b) else b }
 
   def append[B >: A](x: => Stream[B]): Stream[B] =
-    foldRight(x) { (a, b) => Cons(() => a, () => b) }
+    foldRight(x) { (a, b) => cons(a, b) }
 
   def flatMap[B](f: A => Stream[B]): Stream[B] =
-    foldRight(Empty: Stream[B]) { (a, b) => f(a).append(b) }
+    foldRight(empty: Stream[B]) { (a, b) => f(a).append(b) }
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
