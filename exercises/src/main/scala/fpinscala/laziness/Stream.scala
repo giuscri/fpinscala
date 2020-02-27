@@ -32,14 +32,24 @@ trait Stream[+A] {
     }
 
   def takeWhile(p: A => Boolean): Stream[A] =
+    foldRight(Empty: Stream[A]) { (a, b) => {
+      if (p(a))
+        Cons(() => a, () => b)
+      else
+        Empty
+    }}
+
+  def forAll(p: A => Boolean): Boolean =
+    foldRight(true) { (a, b) => p(a) && b }
+
+  def headOption: Option[A] =
     this match {
-      case Cons(h, t) if p(h()) => Cons(h, () => t().takeWhile(p))
-      case _ => Empty
+      case Empty => None
+      case Cons(h, _) => Some(h())
     }
 
-  def forAll(p: A => Boolean): Boolean = ???
-
-  def headOption: Option[A] = ???
+  def headOption2: Option[A] =
+    foldRight(None: Option[A]) { (a, _) => Some(a) }
 
   def toList: List[A] =
     this match {
@@ -49,6 +59,23 @@ trait Stream[+A] {
 
   // 5.7 map, filter, append, flatmap using foldRight. Part of the exercise is
   // writing your own function signatures.
+
+  def map[B](f: A => B): Stream[B] =
+    foldRight(Empty: Stream[B]) { (a, b) => Cons(() => f(a), () => b) }
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(Empty: Stream[A]) { (a, b) => {
+      if (f(a))
+        Cons(() => a, () => b)
+      else
+        b
+    }}
+
+  def append[B >: A](x: => Stream[B]): Stream[B] =
+    foldRight(x) { (a, b) => Cons(() => a, () => b) }
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(Empty: Stream[B]) { (a, b) => f(a).append(b) }
 
   def startsWith[B](s: Stream[B]): Boolean = ???
 }
@@ -74,10 +101,27 @@ object Stream {
   def unfold[A, S](z: S)(f: S => Option[(A, S)]): Stream[A] = ???
 
   def main(args: Array[String]): Unit = {
-    val s = cons(1, cons(2, cons(3, empty)))
+    val s = cons(1, cons(2, cons(3, cons(5, cons(2, empty)))))
     println(s.toList)
     println(s.take(2).toList)
     println(s.drop(1).toList)
     println(s.takeWhile(x => x < 3).toList)
+    println(s.forAll(_ < 5))
+    println(s.forAll(_ < 1))
+    println(s.takeWhile(_ < 3).toList)
+    println(s.map(_ + 1).toList)
+    println(s.filter(_ % 2 == 0).toList)
+    println(s.append(cons(1, cons(2, empty))).toList)
+    println(s.flatMap(cons(_, cons(42, empty))).toList)
+
+    val ss = cons(1, cons(2, empty))
+    println(ss.headOption)
+    println(ss.headOption2)
+
+    val sss: Stream[Int] = empty
+    println(sss.headOption)
+    println(sss.headOption2)
+    println(sss.map(_ + 1).toList)
+    println(sss.append(cons(1, empty)).toList)
   }
 }
