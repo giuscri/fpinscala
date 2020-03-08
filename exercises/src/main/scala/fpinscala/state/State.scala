@@ -30,9 +30,19 @@ object RNG {
       (f(a), rng2)
     }
 
-  def nonNegativeInt(rng: RNG): (Int, RNG) = ???
+  def nonNegativeInt(rng: RNG): (Int, RNG) = {
+    rng.nextInt match {
+      case (Int.MinValue, rng) => nonNegativeInt(rng)
+      case (x, rng) if x < 0 => (x * -1, rng)
+      case (x, rng) => (x, rng)
+    }
+  }
 
-  def double(rng: RNG): (Double, RNG) = ???
+  def double(rng: RNG): (Double, RNG) = {
+    nonNegativeInt(rng) match {
+      case (x, rng) => (x.toDouble / Int.MaxValue.toDouble, rng)
+    }
+  }
 
   def intDouble(rng: RNG): ((Int,Double), RNG) = ???
 
@@ -47,6 +57,14 @@ object RNG {
   def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
 
   def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
+
+  def main(args: Array[String]): Unit = {
+    val rng = Simple(1L)
+    println(nonNegativeInt(rng))
+
+    val rng2 = Simple(1L)
+    println(double(rng2))
+  }
 }
 
 case class State[S,+A](run: S => (A, S)) {
